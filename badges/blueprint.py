@@ -77,9 +77,9 @@ def badge_assertion(uuid):
     sparql = render_template(
         "jsonObjectQueryTemplate.rq",
         uri_sparql_select = """
-BIND ("{}" AS ?uid) .
-BIND (URI(CONCAT("http://localhost:8080/fedora/rest/",SUBSTR(?uid, 1,2),"/",SUBSTR(?uid, 3,2),
-      "/",SUBSTR(?uid, 5,2),"/",SUBSTR(?uid, 7,2),"/",?uid)) AS ?uri) .""".format(uuid),
+            BIND ("{}" AS ?uid) .
+            BIND (URI(CONCAT("http://localhost:8080/fedora/rest/",SUBSTR(?uid, 1,2),"/",SUBSTR(?uid, 3,2),
+            "/",SUBSTR(?uid, 5,2),"/",SUBSTR(?uid, 7,2),"/",?uid)) AS ?uri) .""".format(uuid),
         object_type = "Assertion")
     assertion_response = requests.post( 
         open_badge.config.get('TRIPLESTORE_URL'),
@@ -96,6 +96,7 @@ BIND (URI(CONCAT("http://localhost:8080/fedora/rest/",SUBSTR(?uid, 1,2),"/",SUBS
 def add_badge_class():
     """Displays Form for adding a BadgeClass Form"""
     badge_class_form = NewBadgeClass()
+    existing_badges = get_badge_classes()
     if request.method.startswith("POST"):
         print("Size of image {}".format(badge_class_form.image_file.raw_data))
         badge_url, badge_slug = new_badge_class(
@@ -110,7 +111,8 @@ def add_badge_class():
         redirect(url_for('open_badge.badge_class', badge_classname=badge_slug))
     return render_template(
         "badge_class.html",
-        form=badge_class_form)
+        form=badge_class_form,
+        badges=existing_badges)
 
     
 
@@ -118,7 +120,7 @@ def add_badge_class():
 @open_badge.route("/BadgeClass/<badge_classname>.json")
 @produces('application/json', 'application/rdf+xml', 'text/html')
 def badge_class(badge_classname):
-    """Route generates a JSON BadgeClass
+    """Route generates a JSON BadgeClass 
     <https://github.com/mozilla/openbadges-specification/> for each Islandora
     badge.
 
@@ -140,7 +142,7 @@ def badge_class(badge_classname):
         abort(505)
     raw_text = badge_class_response.json().get('results').get('bindings')[0]['jsonString']['value']
     raw_text = "{" + raw_text + "}"
-    return json.dumps(json.loads(raw_text),indent=4, sort_keys=True)
+    return "<pre>" + json.dumps(json.loads(raw_text),indent=4, sort_keys=True) +"</pre>"
 
 @open_badge.route("/Criteria/<badge>")
 @produces('application/json')
@@ -202,3 +204,5 @@ def badge_image(badge=None, uid=None):
     if img_response.status_code > 399:
         abort(500)
     return Response(img_response.text, mimetype='image/png')
+
+"""Test"""
