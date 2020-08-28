@@ -3,6 +3,8 @@
 *.rdb
 *.bat
 *.log
+*.bak
+*.pyc
 data*
 build*
 dist*
